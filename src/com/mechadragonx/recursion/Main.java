@@ -12,16 +12,21 @@ import java.util.Scanner;
 public class Main
 {
     private static HashSet<String> dictionary = new HashSet<>();
-    private static Iterator<String> dictIterator = dictionary.iterator();
+    private static Iterator<String> dictIterator;
     private static HashSet<String> found = new HashSet<>();
     private static ArrayList<Character> used = new ArrayList<>();
     private static ArrayList<Character> currentWordList = new ArrayList<>();
 
+    private static HashSet<String> possibleValues = new HashSet<>();
+    private static Iterator<String> possibleIterator;
+
     public static void main(String[] args) throws FileNotFoundException
     {
-        readDictionary(".\\data\\dictionary_words_small.txt");
-        ArrayList<Character> phraseList = phraseToList(tokenizeInput("Clint Eastwood"));
-        findAnagramsRecursive(phraseList);
+        readDictionary(".\\data\\listen.txt");
+        String word = tokenizeInput("lIsTeN");
+        wordsOfSameLength(word);
+        ArrayList<Character> list = phraseToList(word);
+        System.out.println(findAnagramsSingle(list));
     }
     private static void readDictionary(String path) throws FileNotFoundException
     {
@@ -34,7 +39,57 @@ public class Main
                 dictionary.add(scanner.nextLine());
             }
         }
+        dictIterator = dictionary.iterator();
     }
+    private static HashSet<String> findAnagramsSingle(ArrayList<Character> wordList)
+    {
+        String dictWord;
+        int matches = 0;
+        ArrayList<Character> usedLetters = new ArrayList<>();
+        if(possibleIterator.hasNext())
+        {
+            dictWord = possibleIterator.next();
+            // dictWord = "silent";
+            if(!found.contains(dictWord) && dictWord.length() == wordList.size())
+            {
+                for(char dictLetter : dictWord.toCharArray())
+                {
+                    for(char currentLetter : wordList)
+                    {
+                        if(dictLetter == currentLetter && !usedLetters.contains(dictLetter))
+                        {
+                            matches++;
+                            usedLetters.add(currentLetter);
+                            break;
+                        }
+                    }
+                }
+                if(matches == dictWord.length())
+                {
+                    found.add(dictWord);
+                }
+                else
+                {
+                    matches = 0;
+                }
+            }
+            findAnagramsSingle(wordList);
+        }
+        return found;
+    }
+
+    private static void wordsOfSameLength(String word)
+    {
+        for(String value : dictionary)
+        {
+            if(value.length() == word.length() && !value.equals(word))
+            {
+                possibleValues.add(value);
+            }
+        }
+        possibleIterator = possibleValues.iterator();
+    }
+
     private static HashSet<String> findAnagramsRecursive(ArrayList<Character> phraseList)
     {
         String dictWord;
@@ -42,7 +97,7 @@ public class Main
         if(dictIterator.hasNext())
         {
             dictWord = dictIterator.next();
-            if(!found.contains(dictWord))
+            if(!found.contains(dictWord) && dictWord.length() <= phraseList.size())
             {
                 for(int i = 0; i < dictWord.length(); i++)
                 {
@@ -62,12 +117,12 @@ public class Main
                 {
                     found.add(dictWord);
                     used.addAll(currentWordList);
+                    phraseList.removeAll(currentWordList);
                 }
                 else
                 {
                     currentWordList.clear();
                     matches = 0;
-                    phraseList.removeAll(currentWordList);
                 }
             }
             findAnagramsRecursive(phraseList);
@@ -123,5 +178,13 @@ public class Main
                 }
             }
         }
+    }
+    private static void printAnagrams(HashSet<String> set)
+    {
+        for(String value : set)
+        {
+            System.out.println(value);
+        }
+        System.out.println();
     }
 }
